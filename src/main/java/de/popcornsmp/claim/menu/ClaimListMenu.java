@@ -41,8 +41,7 @@ public class ClaimListMenu implements InventoryHolder {
             inventory.setItem(slot, new ItemBuilder(Material.GRASS_BLOCK)
                     .name("§6" + pos.getWorld() + " §7| §6" + pos.getX() + "§7, §6" + pos.getZ())
                     .lore(List.of(
-                            "§7Links-Klick: Chunk markieren",
-                            "§7Rechts-Klick: Chunk freigeben"
+                            "§7Klicke, um diesen Chunk zu markieren."
                     ))
                     .build());
             slotMapping.put(slot, pos);

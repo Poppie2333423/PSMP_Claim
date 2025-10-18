@@ -1,5 +1,6 @@
 package de.popcornsmp.claim;
 
+import org.bukkit.Color;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -8,6 +9,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class ChunkHighlighter {
+    private static final Particle.DustOptions GOLD_DUST = new Particle.DustOptions(Color.fromRGB(255, 196, 66), 1.2f);
+
     private final PopcornSMPPlugin plugin;
 
     public ChunkHighlighter(PopcornSMPPlugin plugin) {
@@ -42,7 +45,8 @@ public class ChunkHighlighter {
     private void spawnParticle(Player player, World world, double x, double y, double z) {
         for (int h = 0; h <= 3; h++) {
             Location location = new Location(world, x + 0.5, y + h, z + 0.5);
-            player.spawnParticle(Particle.VILLAGER_HAPPY, location, 1, 0, 0, 0, 0);
+            player.spawnParticle(Particle.REDSTONE, location, 1, 0.02, 0.0, 0.02, 0.0, GOLD_DUST);
+            player.spawnParticle(Particle.END_ROD, location, 1, 0.02, 0.05, 0.02, 0.0);
         }
     }
 }

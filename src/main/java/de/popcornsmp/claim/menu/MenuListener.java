@@ -74,17 +74,8 @@ public class MenuListener implements Listener {
             if (pos == null) {
                 return;
             }
-            if (event.isLeftClick()) {
-                player.closeInventory();
-                handler.highlightChunk(player, pos);
-            } else if (event.isRightClick()) {
-                if (manager.unclaimChunk(player.getUniqueId(), pos)) {
-                    Message.send(player, "Chunk §6" + pos.getX() + "§7/§6" + pos.getZ() + " §7wurde freigegeben.");
-                    handler.openClaimListMenu(player);
-                } else {
-                    Message.sendError(player, "Du kannst diesen Chunk nicht freigeben.");
-                }
-            }
+            player.closeInventory();
+            handler.highlightChunk(player, pos);
         }
     }
 

@@ -2,9 +2,11 @@ package de.popcornsmp.claim;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -14,6 +16,7 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -22,10 +25,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChunkProtectionListener implements Listener {
     private final ChunkManager manager;
+    private final Map<String, UUID> placedTnt = new ConcurrentHashMap<>();
+    private final Map<UUID, UUID> primedTntOwners = new ConcurrentHashMap<>();
+    private final Map<String, UUID> fluidSources = new ConcurrentHashMap<>();
 
     public ChunkProtectionListener(ChunkManager manager) {
         this.manager = manager;
@@ -33,15 +41,25 @@ public class ChunkProtectionListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!canModify(event.getPlayer(), event.getBlock().getLocation())) {
+        Block block = event.getBlock();
+        if (!canModify(event.getPlayer(), block.getLocation())) {
             event.setCancelled(true);
+            return;
+        }
+        if (block.getType() == Material.TNT) {
+            placedTnt.remove(key(block.getLocation()));
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!canModify(event.getPlayer(), event.getBlock().getLocation())) {
+        Block block = event.getBlock();
+        if (!canModify(event.getPlayer(), block.getLocation())) {
             event.setCancelled(true);
+            return;
+        }
+        if (block.getType() == Material.TNT) {
+            placedTnt.put(key(block.getLocation()), event.getPlayer().getUniqueId());
         }
     }
 
@@ -49,6 +67,14 @@ public class ChunkProtectionListener implements Listener {
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
         if (!canModify(event.getPlayer(), event.getBlock().getLocation())) {
             event.setCancelled(true);
+            return;
+        }
+        Block clicked = event.getBlockClicked();
+        Block target = clicked != null && event.getBlockFace() != null
+                ? clicked.getRelative(event.getBlockFace())
+                : event.getBlock();
+        if (target != null) {
+            fluidSources.put(key(target.getLocation()), event.getPlayer().getUniqueId());
         }
     }
 
@@ -120,30 +146,55 @@ public class ChunkProtectionListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onBlockFromTo(BlockFromToEvent event) {
         ChunkPos to = ChunkPos.of(event.getToBlock().getChunk());
+        UUID sourcePlayer = fluidSources.get(key(event.getBlock().getLocation()));
+        if (sourcePlayer != null) {
+            fluidSources.put(key(event.getToBlock().getLocation()), sourcePlayer);
+        }
         if (!manager.isClaimed(to)) {
             return;
         }
         ChunkPos from = ChunkPos.of(event.getBlock().getChunk());
         UUID toOwner = manager.getOwner(to).orElse(null);
         UUID fromOwner = manager.getOwner(from).orElse(null);
-        if (toOwner == null || !toOwner.equals(fromOwner)) {
+        if (toOwner != null && toOwner.equals(fromOwner)) {
+            return;
+        }
+        if (sourcePlayer != null && manager.isTrusted(to, sourcePlayer)) {
+            fluidSources.put(key(event.getToBlock().getLocation()), sourcePlayer);
+        } else {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        event.blockList().removeIf(block -> isProtected(block.getLocation()));
+        UUID responsible = resolveResponsiblePlayer(event.getEntity());
+        event.blockList().removeIf(block -> !canExplosionAffect(block.getLocation(), responsible));
+        if (event.blockList().isEmpty()) {
+            event.setCancelled(true);
+        }
+        primedTntOwners.remove(event.getEntity().getUniqueId());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        UUID responsible = null;
+        if (event.getBlock().getType() == Material.TNT) {
+            responsible = placedTnt.remove(key(event.getBlock().getLocation()));
+        }
+        event.blockList().removeIf(block -> !canExplosionAffect(block.getLocation(), responsible));
         if (event.blockList().isEmpty()) {
             event.setCancelled(true);
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onBlockExplode(BlockExplodeEvent event) {
-        event.blockList().removeIf(block -> isProtected(block.getLocation()));
-        if (event.blockList().isEmpty()) {
-            event.setCancelled(true);
+    @EventHandler
+    public void onEntitySpawn(EntitySpawnEvent event) {
+        if (event.getEntity() instanceof TNTPrimed tnt) {
+            UUID source = placedTnt.remove(key(event.getLocation()));
+            if (source != null) {
+                primedTntOwners.put(tnt.getUniqueId(), source);
+            }
         }
     }
 
@@ -187,5 +238,37 @@ public class ChunkProtectionListener implements Listener {
 
     private boolean isProtected(Location location) {
         return manager.isClaimed(ChunkPos.of(location.getChunk()));
+    }
+
+    private boolean canExplosionAffect(Location location, UUID responsible) {
+        ChunkPos pos = ChunkPos.of(location.getChunk());
+        if (!manager.isClaimed(pos)) {
+            return true;
+        }
+        if (responsible != null && manager.isTrusted(pos, responsible)) {
+            return true;
+        }
+        return false;
+    }
+
+    private UUID resolveResponsiblePlayer(org.bukkit.entity.Entity entity) {
+        if (entity instanceof Player player) {
+            return player.getUniqueId();
+        }
+        if (entity instanceof TNTPrimed tnt) {
+            org.bukkit.entity.Entity source = tnt.getSource();
+            if (source instanceof Player player) {
+                return player.getUniqueId();
+            }
+            UUID stored = primedTntOwners.get(tnt.getUniqueId());
+            if (stored != null) {
+                return stored;
+            }
+        }
+        return null;
+    }
+
+    private String key(Location location) {
+        return location.getWorld().getName() + ':' + location.getBlockX() + ':' + location.getBlockY() + ':' + location.getBlockZ();
     }
 }
