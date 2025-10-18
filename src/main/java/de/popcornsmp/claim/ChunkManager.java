@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class ChunkManager {
-    private static final int MAX_CLAIMS = 10;
+    private static final int MAX_CLAIMS = 25;
 
     private final Map<UUID, PlayerData> playerData;
     private final Map<ChunkPos, UUID> claims = new HashMap<>();

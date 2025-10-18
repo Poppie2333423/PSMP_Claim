@@ -74,7 +74,7 @@ public class MenuHandler {
             return false;
         }
         if (!manager.canClaimMore(player.getUniqueId())) {
-            Message.sendError(player, "Du hast bereits die maximalen §610§c Claims erreicht.");
+            Message.sendError(player, "Du hast bereits die maximalen §625§c Claims erreicht.");
             return false;
         }
         boolean claimed = manager.claimChunk(player, chunk);

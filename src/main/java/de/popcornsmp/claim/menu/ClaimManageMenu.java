@@ -61,7 +61,7 @@ public class ClaimManageMenu implements InventoryHolder {
         inventory.setItem(22, new ItemBuilder(Material.BOOK)
                 .name("§6Status")
                 .lore(Arrays.asList(
-                        "§7Geclaimte Chunks: " + Message.highlight(count + " / 10"),
+                        "§7Geclaimte Chunks: " + Message.highlight(count + " / 25"),
                         "§7Vertrauenswürdige Spieler: " + Message.highlight(String.valueOf(manager.getTrustedPlayers(player.getUniqueId()).size()))
                 ))
                 .build());

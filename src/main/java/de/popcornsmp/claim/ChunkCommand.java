@@ -45,7 +45,7 @@ public class ChunkCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (!manager.canClaimMore(player.getUniqueId())) {
-                    Message.sendError(player, "Du hast bereits §610§c Claims erreicht.");
+                    Message.sendError(player, "Du hast bereits §625§c Claims erreicht.");
                     return true;
                 }
                 Chunk chunk = player.getLocation().getChunk();

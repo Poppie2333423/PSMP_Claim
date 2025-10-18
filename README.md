@@ -1,10 +1,10 @@
 # PopcornSMP Claim Plugin
 
-Dieses Projekt enthält ein Spigot-Plugin für den **PopcornSMP** Server. Spieler können darüber bis zu zehn Chunks beanspruchen, verwalten und schützen. Alle Funktionen stehen sowohl über das `/chunk`-Menü als auch über Befehle zur Verfügung.
+Dieses Projekt enthält ein Spigot-Plugin für den **PopcornSMP** Server. Spieler können darüber bis zu fünfundzwanzig Chunks beanspruchen, verwalten und schützen. Alle Funktionen stehen sowohl über das `/chunk`-Menü als auch über Befehle zur Verfügung.
 
 ## Features
 
-- Claim-Limit von 10 Chunks pro Spieler
+- Claim-Limit von 25 Chunks pro Spieler
 - GUI-Menü mit folgenden Optionen:
   - Aktuellen Chunk hervorheben (15 Sekunden Partikel-Rahmen)
   - Chunk claimen oder freigeben

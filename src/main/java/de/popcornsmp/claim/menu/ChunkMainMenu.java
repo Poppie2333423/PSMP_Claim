@@ -60,7 +60,7 @@ public class ChunkMainMenu implements InventoryHolder {
                     .name("§6Chunk claimen")
                     .lore(Arrays.asList(
                             "§7Beanspruche diesen Chunk.",
-                            "§7Noch verfügbar: " + Message.highlight((10 - manager.getClaimCount(player.getUniqueId())) + " / 10")
+                            "§7Noch verfügbar: " + Message.highlight((Math.max(0, 25 - manager.getClaimCount(player.getUniqueId()))) + " / 25")
                     ))
                     .build());
         }
@@ -68,7 +68,7 @@ public class ChunkMainMenu implements InventoryHolder {
         inventory.setItem(15, new ItemBuilder(Material.CHEST)
                 .name("§6Verwaltung")
                 .lore(Arrays.asList(
-                        "§7Du hast derzeit " + Message.highlight(manager.getClaimCount(player.getUniqueId()) + " / 10") + "§7 Chunks.",
+                        "§7Du hast derzeit " + Message.highlight(manager.getClaimCount(player.getUniqueId()) + " / 25") + "§7 Chunks.",
                         "§7Verwalte Claims und Zugriffsrechte."
                 ))
                 .build());
