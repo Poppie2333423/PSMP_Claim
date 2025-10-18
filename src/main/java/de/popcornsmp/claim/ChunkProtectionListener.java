@@ -182,7 +182,8 @@ public class ChunkProtectionListener implements Listener {
         if (event.getBlock().getType() == Material.TNT) {
             responsible = placedTnt.remove(key(event.getBlock().getLocation()));
         }
-        event.blockList().removeIf(block -> !canExplosionAffect(block.getLocation(), responsible));
+        final UUID explosionOwner = responsible;
+        event.blockList().removeIf(block -> !canExplosionAffect(block.getLocation(), explosionOwner));
         if (event.blockList().isEmpty()) {
             event.setCancelled(true);
         }
