@@ -33,11 +33,11 @@ public class MenuHandler {
     }
 
     public void openManageMenu(Player player) {
-        openManageMenu(player, ClaimManageMenu.View.OVERVIEW);
+        player.openInventory(new ClaimManageMenu(player, manager).getInventory());
     }
 
-    public void openManageMenu(Player player, ClaimManageMenu.View view) {
-        player.openInventory(new ClaimManageMenu(player, manager, view).getInventory());
+    public void openTrustListMenu(Player player) {
+        player.openInventory(new TrustListMenu(player, manager).getInventory());
     }
 
     public void openClaimListMenu(Player player) {

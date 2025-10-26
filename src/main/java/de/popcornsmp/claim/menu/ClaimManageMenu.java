@@ -5,42 +5,21 @@ import de.popcornsmp.claim.ItemBuilder;
 import de.popcornsmp.claim.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class ClaimManageMenu implements InventoryHolder {
     public static final String TITLE = "§6§lClaim-Verwaltung";
-    private static final int[] TRUSTED_SLOTS = {
-            0, 1, 2, 3, 4, 5, 6, 7, 8,
-            9, 10, 12, 14, 16, 17,
-            18, 19, 20, 21, 23, 24, 25, 26
-    };
     private final Inventory inventory;
-    private final Map<Integer, UUID> trustedSlots = new HashMap<>();
-    private final View view;
-
-    public enum View {
-        OVERVIEW,
-        TRUST_LIST
-    }
 
     public ClaimManageMenu(Player player, ChunkManager manager) {
-        this(player, manager, View.OVERVIEW);
-    }
-
-    public ClaimManageMenu(Player player, ChunkManager manager, View view) {
-        this.view = view;
         this.inventory = Bukkit.createInventory(this, 27, TITLE);
         int count = manager.getClaimCount(player.getUniqueId());
         List<UUID> trustedPlayers = new ArrayList<>(manager.getTrustedPlayers(player.getUniqueId()));
@@ -73,44 +52,14 @@ public class ClaimManageMenu implements InventoryHolder {
                     .collect(Collectors.joining("§7, §6", "§6", "")) + "§7";
         }
 
-        if (view == View.OVERVIEW) {
-            inventory.setItem(15, new ItemBuilder(trustedPlayers.isEmpty() ? Material.BARRIER : Material.BLAZE_ROD)
-                    .name("§6Zugriffe verwalten")
-                    .lore(Arrays.asList(
-                            "§7Klicke, um vertrauenswürdige Spieler anzuzeigen.",
-                            "",
-                            "§7Aktuelle Zugänge: " + trustedLine
-                    ))
-                    .build());
-        } else {
-            inventory.setItem(15, new ItemBuilder(Material.ARROW)
-                    .name("§6Zur Übersicht")
-                    .lore(Collections.singletonList("§7Klicke, um zur Übersicht zurückzukehren."))
-                    .build());
-
-            int index = 0;
-            for (UUID trusted : trustedPlayers) {
-                if (index >= TRUSTED_SLOTS.length) {
-                    break;
-                }
-                int slot = TRUSTED_SLOTS[index++];
-                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(trusted);
-                String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : trusted.toString();
-                inventory.setItem(slot, new ItemBuilder(Material.PLAYER_HEAD)
-                        .skullOwner(trusted)
-                        .name("§6" + name)
-                        .lore(Collections.singletonList("§7Klicke, um den Zugriff zu entziehen."))
-                        .build());
-                trustedSlots.put(slot, trusted);
-            }
-
-            if (trustedPlayers.isEmpty()) {
-                inventory.setItem(4, new ItemBuilder(Material.GRAY_STAINED_GLASS_PANE)
-                        .name("§7Keine vertrauenswürdigen Spieler")
-                        .lore(Collections.singletonList("§7Füge Spieler hinzu, um sie hier zu verwalten."))
-                        .build());
-            }
-        }
+        inventory.setItem(15, new ItemBuilder(trustedPlayers.isEmpty() ? Material.BARRIER : Material.BLAZE_ROD)
+                .name("§6Zugriffe verwalten")
+                .lore(Arrays.asList(
+                        "§7Klicke, um vertrauenswürdige Spieler zu verwalten.",
+                        "",
+                        "§7Aktuelle Zugänge: " + trustedLine
+                ))
+                .build());
 
         inventory.setItem(22, new ItemBuilder(Material.BOOK)
                 .name("§6Status")
@@ -124,13 +73,5 @@ public class ClaimManageMenu implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return inventory;
-    }
-
-    public UUID getTrustedAt(int slot) {
-        return view == View.TRUST_LIST ? trustedSlots.get(slot) : null;
-    }
-
-    public View getView() {
-        return view;
     }
 }

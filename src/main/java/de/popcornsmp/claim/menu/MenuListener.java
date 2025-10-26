@@ -52,7 +52,7 @@ public class MenuListener implements Listener {
             } else if (slot == 15) {
                 handler.openManageMenu(player);
             }
-        } else if (holder instanceof ClaimManageMenu manageMenu) {
+        } else if (holder instanceof ClaimManageMenu) {
             event.setCancelled(true);
             int slot = event.getRawSlot();
             if (slot >= inventory.getSize()) {
@@ -64,26 +64,33 @@ public class MenuListener implements Listener {
                 player.closeInventory();
                 handler.beginPrompt(player, MenuHandler.PromptType.ADD_TRUST);
             } else if (slot == 15) {
-                if (manageMenu.getView() == ClaimManageMenu.View.OVERVIEW) {
-                    handler.openManageMenu(player, ClaimManageMenu.View.TRUST_LIST);
-                } else {
-                    handler.openManageMenu(player, ClaimManageMenu.View.OVERVIEW);
-                }
+                handler.openTrustListMenu(player);
             } else {
-                UUID trusted = manageMenu.getTrustedAt(slot);
-                if (trusted == null) {
-                    return;
-                }
-                boolean removed = manager.removeTrusted(player.getUniqueId(), trusted);
-                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(trusted);
-                String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : trusted.toString();
-                if (removed) {
-                    Message.send(player, "§6" + name + "§7 hat keinen Zugriff mehr auf deine Claims.");
-                } else {
-                    Message.sendError(player, "Dieser Spieler hatte keinen Zugriff.");
-                }
-                handler.openManageMenu(player, ClaimManageMenu.View.TRUST_LIST);
+                // no other clickable content
             }
+        } else if (holder instanceof TrustListMenu trustListMenu) {
+            event.setCancelled(true);
+            int slot = event.getRawSlot();
+            if (slot >= inventory.getSize()) {
+                return;
+            }
+            if (slot == 18) {
+                handler.openManageMenu(player);
+                return;
+            }
+            UUID trusted = trustListMenu.getTrustedAt(slot);
+            if (trusted == null) {
+                return;
+            }
+            boolean removed = manager.removeTrusted(player.getUniqueId(), trusted);
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(trusted);
+            String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : trusted.toString();
+            if (removed) {
+                Message.send(player, "§6" + name + "§7 hat keinen Zugriff mehr auf deine Claims.");
+            } else {
+                Message.sendError(player, "Dieser Spieler hatte keinen Zugriff.");
+            }
+            handler.openTrustListMenu(player);
         } else if (holder instanceof ClaimListMenu listMenu) {
             event.setCancelled(true);
             int slot = event.getRawSlot();
