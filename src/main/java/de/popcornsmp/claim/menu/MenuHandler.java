@@ -90,8 +90,6 @@ public class MenuHandler {
         prompts.put(player.getUniqueId(), type);
         if (type == PromptType.ADD_TRUST) {
             Message.send(player, "Gib den §6Spielernamen§7 im Chat ein, den du hinzufügen möchtest.");
-        } else {
-            Message.send(player, "Gib den §6Spielernamen§7 im Chat ein, den du entfernen möchtest.");
         }
         Message.send(player, "Sende §6abbrechen§7, um den Vorgang zu stoppen.");
     }
@@ -124,20 +122,12 @@ public class MenuHandler {
         if (type == PromptType.ADD_TRUST) {
             manager.addTrusted(player.getUniqueId(), target.getUniqueId());
             Message.send(player, "§6" + (target.getName() != null ? target.getName() : target.getUniqueId()) + "§7 hat nun Zugriff auf alle deine Claims.");
-        } else if (type == PromptType.REMOVE_TRUST) {
-            boolean removed = manager.removeTrusted(player.getUniqueId(), target.getUniqueId());
-            if (removed) {
-                Message.send(player, "§6" + (target.getName() != null ? target.getName() : target.getUniqueId()) + "§7 hat keinen Zugriff mehr auf deine Claims.");
-            } else {
-                Message.sendError(player, "Dieser Spieler hatte keinen Zugriff.");
-            }
         }
         Bukkit.getScheduler().runTask(plugin, () -> openManageMenu(player));
         return true;
     }
 
     public enum PromptType {
-        ADD_TRUST,
-        REMOVE_TRUST
+        ADD_TRUST
     }
 }

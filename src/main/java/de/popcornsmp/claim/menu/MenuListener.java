@@ -5,6 +5,7 @@ import de.popcornsmp.claim.ChunkPos;
 import de.popcornsmp.claim.Message;
 import de.popcornsmp.claim.PopcornSMPPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,6 +15,8 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+
+import java.util.UUID;
 
 public class MenuListener implements Listener {
     private final PopcornSMPPlugin plugin;
@@ -49,7 +52,7 @@ public class MenuListener implements Listener {
             } else if (slot == 15) {
                 handler.openManageMenu(player);
             }
-        } else if (holder instanceof ClaimManageMenu) {
+        } else if (holder instanceof ClaimManageMenu manageMenu) {
             event.setCancelled(true);
             int slot = event.getRawSlot();
             if (slot >= inventory.getSize()) {
@@ -60,9 +63,20 @@ public class MenuListener implements Listener {
             } else if (slot == 13) {
                 player.closeInventory();
                 handler.beginPrompt(player, MenuHandler.PromptType.ADD_TRUST);
-            } else if (slot == 15) {
-                player.closeInventory();
-                handler.beginPrompt(player, MenuHandler.PromptType.REMOVE_TRUST);
+            } else {
+                UUID trusted = manageMenu.getTrustedAt(slot);
+                if (trusted == null) {
+                    return;
+                }
+                boolean removed = manager.removeTrusted(player.getUniqueId(), trusted);
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(trusted);
+                String name = offlinePlayer.getName() != null ? offlinePlayer.getName() : trusted.toString();
+                if (removed) {
+                    Message.send(player, "§6" + name + "§7 hat keinen Zugriff mehr auf deine Claims.");
+                } else {
+                    Message.sendError(player, "Dieser Spieler hatte keinen Zugriff.");
+                }
+                handler.openManageMenu(player);
             }
         } else if (holder instanceof ClaimListMenu listMenu) {
             event.setCancelled(true);
