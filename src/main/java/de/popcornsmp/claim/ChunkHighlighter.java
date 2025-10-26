@@ -32,11 +32,11 @@ public class ChunkHighlighter {
                     return;
                 }
                 ticks -= 10;
-                for (int i = 0; i <= 16; i++) {
+                for (int i = 0; i < 16; i++) {
                     spawnParticle(player, world, baseX + i, y, baseZ);
-                    spawnParticle(player, world, baseX + i, y, baseZ + 16);
+                    spawnParticle(player, world, baseX + i, y, baseZ + 15);
                     spawnParticle(player, world, baseX, y, baseZ + i);
-                    spawnParticle(player, world, baseX + 16, y, baseZ + i);
+                    spawnParticle(player, world, baseX + 15, y, baseZ + i);
                 }
             }
         }.runTaskTimer(plugin, 0L, 10L);
